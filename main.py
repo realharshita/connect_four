@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox, Menu
+import random
 
 class ConnectFour:
     def __init__(self, root):
@@ -14,10 +15,7 @@ class ConnectFour:
         self.status_label = tk.Label(root, text="Welcome to Connect Four!", font=("Arial", 12))
         self.status_label.grid(row=6, column=0, columnspan=7)
         self.create_menu()
-        self.red_win_label = tk.Label(root, text="Red Wins: 0", font=("Arial", 12))
-        self.red_win_label.grid(row=8, column=0, columnspan=3)
-        self.yellow_win_label = tk.Label(root, text="Yellow Wins: 0", font=("Arial", 12))
-        self.yellow_win_label.grid(row=8, column=4, columnspan=3)
+        self.create_scoreboard()
         self.turn_label = tk.Label(root, text=f"{self.red_player}'s Turn", font=("Arial", 12))
         self.turn_label.grid(row=7, column=0, columnspan=7)
         self.prompt_player_names()
@@ -54,10 +52,19 @@ class ConnectFour:
         options_menu = Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="Options", menu=options_menu)
         options_menu.add_command(label="Change Players' Names", command=self.prompt_player_names)
+        options_menu.add_command(label="Play Against AI", command=self.play_with_ai)
 
         help_menu = Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="Help", menu=help_menu)
         help_menu.add_command(label="Game Instructions", command=self.show_instructions)
+
+    def create_scoreboard(self):
+        self.scoreboard = tk.LabelFrame(self.root, text="Scoreboard", font=("Arial", 12))
+        self.scoreboard.grid(row=9, column=0, columnspan=7, padx=10, pady=10)
+        self.red_win_label = tk.Label(self.scoreboard, text="Red Wins: 0", font=("Arial", 12))
+        self.red_win_label.grid(row=0, column=0, padx=5, pady=5)
+        self.yellow_win_label = tk.Label(self.scoreboard, text="Yellow Wins: 0", font=("Arial", 12))
+        self.yellow_win_label.grid(row=0, column=1, padx=5, pady=5)
 
     def show_instructions(self):
         instructions = (
@@ -71,6 +78,10 @@ class ConnectFour:
         messagebox.showinfo("Instructions", instructions)
 
     def cell_clicked(self, row, col):
+        if self.board[0][col] != 0:
+            messagebox.showwarning("Column Full", "This column is already full. Please choose another column.")
+            return
+
         for r in range(5, -1, -1):
             if self.board[r][col] == 0:
                 self.board[r][col] = self.current_player
@@ -82,7 +93,8 @@ class ConnectFour:
                     self.reset_board()
                 else:
                     self.update_turn_label()
-                self.current_player = 3 - self.current_player
+                    if self.current_player == 2 and self.ai_active:
+                        self.ai_move()
                 break
 
     def update_gui(self, row, col):
@@ -150,6 +162,16 @@ class ConnectFour:
         self.red_player = simpledialog.askstring("Player Name", "Enter name for Red player:", initialvalue="Red")
         self.yellow_player = simpledialog.askstring("Player Name", "Enter name for Yellow player:", initialvalue="Yellow")
         self.update_turn_label()
+
+    def play_with_ai(self):
+        self.ai_active = True
+        self.prompt_player_names()
+
+    def ai_move(self):
+        # Basic AI: Randomly choose a valid column
+        valid_columns = [col for col in range(7) if self.board[0][col] == 0]
+        chosen_column = random.choice(valid_columns)
+        self.cell_clicked(0, chosen_column)
 
 if __name__ == "__main__":
     root = tk.Tk()
