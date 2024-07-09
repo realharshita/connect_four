@@ -293,12 +293,10 @@ class ConnectFour:
                 window = [board[row+i][col] for i in range(4)]
                 score += self.evaluate_window(window)
 
-
         for row in range(3):
             for col in range(4):
                 window = [board[row+i][col+i] for i in range(4)]
                 score += self.evaluate_window(window)
-
 
         for row in range(3):
             for col in range(4):
@@ -307,27 +305,26 @@ class ConnectFour:
 
         return score
 
-def evaluate_window(self, window):
-    score = 0
-    opp_piece = 1 if self.current_player == 2 else 2
+    def evaluate_window(self, window):
+        score = 0
+        opp_piece = 1 if self.current_player == 2 else 2
 
-    if window.count(self.current_player) == 4:
-        score += 100
-    elif window.count(self.current_player) == 3 and window.count(0) == 1:
-        score += 5
-    elif window.count(self.current_player) == 2 and window.count(0) == 2:
-        score += 2
+        if window.count(self.current_player) == 4:
+            score += 100
+        elif window.count(self.current_player) == 3 and window.count(0) == 1:
+            score += 5
+        elif window.count(self.current_player) == 2 and window.count(0) == 2:
+            score += 2
 
-    if window.count(opp_piece) == 3 and window.count(0) == 1:
-        score -= 4
+        if window.count(opp_piece) == 3 and window.count(0) == 1:
+            score -= 4
 
-    return score
-
+        return score
 
     def check_win_state(self, player):
         for row in range(6):
             for col in range(7):
-                if board[row][col] == player:
+                if self.board[row][col] == player:
                     if self.check_win(row, col):
                         return True
         return False
