@@ -282,8 +282,47 @@ class ConnectFour:
 
     def evaluate_board(self, board):
         score = 0
-        # Heuristic evaluation logic goes here
+
+        for row in range(6):
+            for col in range(4):
+                window = [board[row][col+i] for i in range(4)]
+                score += self.evaluate_window(window)
+
+        for col in range(7):
+            for row in range(3):
+                window = [board[row+i][col] for i in range(4)]
+                score += self.evaluate_window(window)
+
+
+        for row in range(3):
+            for col in range(4):
+                window = [board[row+i][col+i] for i in range(4)]
+                score += self.evaluate_window(window)
+
+
+        for row in range(3):
+            for col in range(4):
+                window = [board[row+3-i][col+i] for i in range(4)]
+                score += self.evaluate_window(window)
+
         return score
+
+def evaluate_window(self, window):
+    score = 0
+    opp_piece = 1 if self.current_player == 2 else 2
+
+    if window.count(self.current_player) == 4:
+        score += 100
+    elif window.count(self.current_player) == 3 and window.count(0) == 1:
+        score += 5
+    elif window.count(self.current_player) == 2 and window.count(0) == 2:
+        score += 2
+
+    if window.count(opp_piece) == 3 and window.count(0) == 1:
+        score -= 4
+
+    return score
+
 
     def check_win_state(self, player):
         for row in range(6):
