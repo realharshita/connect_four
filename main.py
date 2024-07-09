@@ -228,6 +228,58 @@ class ConnectFour:
 
         self.ai_move_easy()
 
+    def ai_move_hard(self):
+        best_score = -float('inf')
+        best_col = None
+
+        for col in range(7):
+            if self.board[0][col] == 0:
+                for r in range(5, -1, -1):
+                    if self.board[r][col] == 0:
+                        self.board[r][col] = 2
+                        score = self.minimax(self.board, 4, -float('inf'), float('inf'), False)
+                        self.board[r][col] = 0
+                        if score > best_score:
+                            best_score = score
+                            best_col = col
+                        break
+
+        if best_col is not None:
+            self.cell_clicked(0, best_col)
+
+    def minimax(self, board, depth, alpha, beta, is_maximizing):
+        if depth == 0 or self.check_tie() or self.check_win_state(1) or self.check_win_state(2):
+            return self.evaluate_board(board)
+
+        if is_maximizing:
+            max_eval = -float('inf')
+            for col in range(7):
+                if board[0][col] == 0:
+                    for r in range(5, -1, -1):
+                        if board[r][col] == 0:
+                            board[r][col] = 2
+                            eval = self.minimax(board, depth-1, alpha, beta, False)
+                            board[r][col] = 0
+                            max_eval = max(max_eval, eval)
+                            alpha = max(alpha, eval)
+                            if beta <= alpha:
+                                break
+            return max_eval
+        else:
+            min_eval = float('inf')
+            for col in range(7):
+                if board[0][col] == 0:
+                    for r in range(5, -1, -1):
+                        if board[r][col] == 0:
+                            board[r][col] = 1
+                            eval = self.minimax(board, depth-1, alpha, beta, True)
+                            board[r][col] = 0
+                            min_eval = min(min_eval, eval)
+                            beta = min(beta, eval)
+                            if beta <= alpha:
+                                break
+            return min_eval
+
     def evaluate_board(self, board):
         score = 0
         # Heuristic evaluation logic goes here
