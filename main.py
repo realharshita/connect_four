@@ -11,6 +11,7 @@ class ConnectFour:
         self.red_player = "Red"
         self.yellow_player = "Yellow"
         self.board = [[0 for _ in range(7)] for _ in range(6)]
+        self.ai_active = False
         self.create_board()
         self.status_label = tk.Label(root, text="Welcome to Connect Four!", font=("Arial", 12))
         self.status_label.grid(row=6, column=0, columnspan=7)
@@ -53,6 +54,7 @@ class ConnectFour:
         menu_bar.add_cascade(label="Options", menu=options_menu)
         options_menu.add_command(label="Change Players' Names", command=self.prompt_player_names)
         options_menu.add_command(label="Play Against AI", command=self.play_with_ai)
+        options_menu.add_command(label="Switch to Two Players", command=self.switch_to_two_players)
 
         help_menu = Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="Help", menu=help_menu)
@@ -82,20 +84,21 @@ class ConnectFour:
             messagebox.showwarning("Column Full", "This column is already full. Please choose another column.")
             return
 
-        for r in range(5, -1, -1):
-            if self.board[r][col] == 0:
-                self.board[r][col] = self.current_player
-                self.update_gui(r, col)
-                if self.check_win(r, col):
-                    self.show_winner(r, col)
-                elif self.check_tie():
-                    messagebox.showinfo("Game Over", "It's a tie!")
-                    self.reset_board()
-                else:
-                    self.update_turn_label()
-                    if self.current_player == 2 and self.ai_active:
-                        self.ai_move()
-                break
+        if not self.ai_active or self.current_player == 1:
+            for r in range(5, -1, -1):
+                if self.board[r][col] == 0:
+                    self.board[r][col] = self.current_player
+                    self.update_gui(r, col)
+                    if self.check_win(r, col):
+                        self.show_winner(r, col)
+                    elif self.check_tie():
+                        messagebox.showinfo("Game Over", "It's a tie!")
+                        self.reset_board()
+                    else:
+                        self.update_turn_label()
+                    break
+        elif self.ai_active and self.current_player == 2:
+            self.ai_move()
 
     def update_gui(self, row, col):
         color = 'red' if self.board[row][col] == 1 else 'yellow'
@@ -165,6 +168,12 @@ class ConnectFour:
 
     def play_with_ai(self):
         self.ai_active = True
+        self.prompt_player_names()
+        if self.current_player == 2:
+            self.ai_move()
+
+    def switch_to_two_players(self):
+        self.ai_active = False
         self.prompt_player_names()
 
     def ai_move(self):
