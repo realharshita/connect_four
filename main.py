@@ -12,6 +12,7 @@ class ConnectFour:
         self.yellow_player = "Yellow"
         self.board = [[0 for _ in range(7)] for _ in range(6)]
         self.ai_active = False
+        self.ai_difficulty = "Easy"
         self.create_board()
         self.status_label = tk.Label(root, text="Welcome to Connect Four!", font=("Arial", 12))
         self.status_label.grid(row=6, column=0, columnspan=7)
@@ -56,9 +57,19 @@ class ConnectFour:
         options_menu.add_command(label="Play Against AI", command=self.play_with_ai)
         options_menu.add_command(label="Switch to Two Players", command=self.switch_to_two_players)
 
+        difficulty_menu = Menu(options_menu, tearoff=0)
+        options_menu.add_cascade(label="AI Difficulty", menu=difficulty_menu)
+        difficulty_menu.add_command(label="Easy", command=lambda: self.set_ai_difficulty("Easy"))
+        difficulty_menu.add_command(label="Medium", command=lambda: self.set_ai_difficulty("Medium"))
+        difficulty_menu.add_command(label="Hard", command=lambda: self.set_ai_difficulty("Hard"))
+
         help_menu = Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="Help", menu=help_menu)
         help_menu.add_command(label="Game Instructions", command=self.show_instructions)
+
+    def set_ai_difficulty(self, difficulty):
+        self.ai_difficulty = difficulty
+        messagebox.showinfo("AI Difficulty", f"AI difficulty set to {difficulty}")
 
     def create_scoreboard(self):
         self.scoreboard = tk.LabelFrame(self.root, text="Scoreboard", font=("Arial", 12))
@@ -84,21 +95,21 @@ class ConnectFour:
             messagebox.showwarning("Column Full", "This column is already full. Please choose another column.")
             return
 
-        if not self.ai_active or self.current_player == 1:
-            for r in range(5, -1, -1):
-                if self.board[r][col] == 0:
-                    self.board[r][col] = self.current_player
-                    self.update_gui(r, col)
-                    if self.check_win(r, col):
-                        self.show_winner(r, col)
-                    elif self.check_tie():
-                        messagebox.showinfo("Game Over", "It's a tie!")
-                        self.reset_board()
-                    else:
-                        self.update_turn_label()
-                    break
-        elif self.ai_active and self.current_player == 2:
-            self.ai_move()
+        for r in range(5, -1, -1):
+            if self.board[r][col] == 0:
+                self.board[r][col] = self.current_player
+                self.update_gui(r, col)
+                if self.check_win(r, col):
+                    self.show_winner(r, col)
+                elif self.check_tie():
+                    messagebox.showinfo("Game Over", "It's a tie!")
+                    self.reset_board()
+                else:
+                    self.current_player = 2 if self.current_player == 1 else 1
+                    self.update_turn_label()
+                    if self.ai_active and self.current_player == 2:
+                        self.root.after(1000, self.ai_move)
+                break
 
     def update_gui(self, row, col):
         color = 'red' if self.board[row][col] == 1 else 'yellow'
@@ -169,18 +180,66 @@ class ConnectFour:
     def play_with_ai(self):
         self.ai_active = True
         self.prompt_player_names()
-        if self.current_player == 2:
-            self.ai_move()
+        self.reset_board()
 
     def switch_to_two_players(self):
         self.ai_active = False
         self.prompt_player_names()
+        self.reset_board()
 
     def ai_move(self):
-        # Basic AI: Randomly choose a valid column
+        if self.ai_difficulty == "Easy":
+            self.ai_move_easy()
+        elif self.ai_difficulty == "Medium":
+            self.ai_move_medium()
+        elif self.ai_difficulty == "Hard":
+            self.ai_move_hard()
+
+    def ai_move_easy(self):
         valid_columns = [col for col in range(7) if self.board[0][col] == 0]
-        chosen_column = random.choice(valid_columns)
-        self.cell_clicked(0, chosen_column)
+        if valid_columns:
+            chosen_column = random.choice(valid_columns)
+            self.cell_clicked(0, chosen_column)
+
+    def ai_move_medium(self):
+        for col in range(7):
+            if self.board[0][col] == 0:
+                for r in range(5, -1, -1):
+                    if self.board[r][col] == 0:
+                        self.board[r][col] = 2
+                        if self.check_win(r, col):
+                            self.board[r][col] = 0
+                            self.cell_clicked(0, col)
+                            return
+                        self.board[r][col] = 0
+                        break
+
+        for col in range(7):
+            if self.board[0][col] == 0:
+                for r in range(5, -1, -1):
+                    if self.board[r][col] == 0:
+                        self.board[r][col] = 1
+                        if self.check_win(r, col):
+                            self.board[r][col] = 0
+                            self.cell_clicked(0, col)
+                            return
+                        self.board[r][col] = 0
+                        break
+
+        self.ai_move_easy()
+
+    def evaluate_board(self, board):
+        score = 0
+        # Heuristic evaluation logic goes here
+        return score
+
+    def check_win_state(self, player):
+        for row in range(6):
+            for col in range(7):
+                if board[row][col] == player:
+                    if self.check_win(row, col):
+                        return True
+        return False
 
 if __name__ == "__main__":
     root = tk.Tk()
