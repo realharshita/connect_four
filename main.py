@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import simpledialog, messagebox, Menu
 
 class ConnectFour:
     def __init__(self, root):
@@ -13,14 +13,13 @@ class ConnectFour:
         self.create_board()
         self.status_label = tk.Label(root, text="Welcome to Connect Four!", font=("Arial", 12))
         self.status_label.grid(row=6, column=0, columnspan=7)
-        reset_button = tk.Button(root, text="Reset Game", command=self.reset_game)
-        reset_button.grid(row=7, column=0, columnspan=3)
-        new_game_button = tk.Button(root, text="New Game", command=self.reset_board)
-        new_game_button.grid(row=7, column=4, columnspan=3)
+        self.create_menu()
         self.red_win_label = tk.Label(root, text="Red Wins: 0", font=("Arial", 12))
         self.red_win_label.grid(row=8, column=0, columnspan=3)
         self.yellow_win_label = tk.Label(root, text="Yellow Wins: 0", font=("Arial", 12))
         self.yellow_win_label.grid(row=8, column=4, columnspan=3)
+        self.turn_label = tk.Label(root, text=f"{self.red_player}'s Turn", font=("Arial", 12))
+        self.turn_label.grid(row=7, column=0, columnspan=7)
         self.prompt_player_names()
 
     def create_board(self):
@@ -41,6 +40,36 @@ class ConnectFour:
                 row_cells.append(cell)
             self.cells.append(row_cells)
 
+    def create_menu(self):
+        menu_bar = Menu(self.root)
+        self.root.config(menu=menu_bar)
+
+        game_menu = Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Game", menu=game_menu)
+        game_menu.add_command(label="New Game", command=self.reset_board)
+        game_menu.add_command(label="Reset Game", command=self.reset_game)
+        game_menu.add_separator()
+        game_menu.add_command(label="Exit", command=self.root.quit)
+
+        options_menu = Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Options", menu=options_menu)
+        options_menu.add_command(label="Change Players' Names", command=self.prompt_player_names)
+
+        help_menu = Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Help", menu=help_menu)
+        help_menu.add_command(label="Game Instructions", command=self.show_instructions)
+
+    def show_instructions(self):
+        instructions = (
+            "Connect Four Instructions:\n\n"
+            "1. The game is played on a 6x7 grid.\n"
+            "2. Players take turns dropping their colored discs from the top into a column.\n"
+            "3. The first player to connect four discs vertically, horizontally, or diagonally wins.\n"
+            "4. If the board fills up without a winner, the game is a tie.\n\n"
+            "Enjoy playing Connect Four!"
+        )
+        messagebox.showinfo("Instructions", instructions)
+
     def cell_clicked(self, row, col):
         for r in range(5, -1, -1):
             if self.board[r][col] == 0:
@@ -52,13 +81,17 @@ class ConnectFour:
                     messagebox.showinfo("Game Over", "It's a tie!")
                     self.reset_board()
                 else:
-                    self.status_label.config(text=f"{self.red_player}'s Turn" if self.current_player == 2 else f"{self.yellow_player}'s Turn")
+                    self.update_turn_label()
                 self.current_player = 3 - self.current_player
                 break
 
     def update_gui(self, row, col):
         color = 'red' if self.board[row][col] == 1 else 'yellow'
         self.cells[row][col].config(bg=color)
+
+    def update_turn_label(self):
+        current_turn = self.red_player if self.current_player == 1 else self.yellow_player
+        self.turn_label.config(text=f"{current_turn}'s Turn")
 
     def check_win(self, row, col):
         directions = [(1, 0), (0, 1), (1, 1), (1, -1)]
@@ -111,12 +144,12 @@ class ConnectFour:
             for col in range(7):
                 self.cells[row][col].config(bg='blue')
         self.current_player = 1
-        self.status_label.config(text=f"{self.red_player}'s Turn")
+        self.update_turn_label()
 
     def prompt_player_names(self):
         self.red_player = simpledialog.askstring("Player Name", "Enter name for Red player:", initialvalue="Red")
         self.yellow_player = simpledialog.askstring("Player Name", "Enter name for Yellow player:", initialvalue="Yellow")
-        self.status_label.config(text=f"{self.red_player}'s Turn")
+        self.update_turn_label()
 
 if __name__ == "__main__":
     root = tk.Tk()
